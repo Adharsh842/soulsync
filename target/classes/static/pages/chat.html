@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSync — Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/variables.css">
+<link rel="stylesheet" href="/css/main.css">
+<style>
+.chat-layout {
+  display: flex; flex-direction: column;
+  height: calc(100vh - var(--topbar-h));
+  overflow: hidden;
+}
+.chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 8px;
+  scroll-behavior: smooth;
+}
+.chat-input-area {
+  padding: 16px 24px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--border-light);
+}
+.chat-input-row {
+  display: flex; gap: 10px; align-items: flex-end;
+}
+.chat-input {
+  flex: 1; min-height: 44px; max-height: 150px;
+  padding: 11px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: 22px;
+  font-size: 0.93rem; font-family: inherit;
+  resize: none; line-height: 1.5;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  overflow-y: auto;
+}
+.chat-input:focus { outline: none; border-color: var(--brand-rose); box-shadow: 0 0 0 3px rgba(255,107,157,0.12); }
+.chat-send-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--grad-primary);
+  color: white; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(200,75,143,0.40);
+  transition: all 0.2s; flex-shrink: 0;
+}
+.chat-send-btn:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(200,75,143,0.50); }
+.chat-tools { display: flex; gap: 8px; margin-bottom: 10px; }
+.chat-tool-btn {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: var(--text-muted);
+  transition: all 0.15s; cursor: pointer;
+}
+.chat-tool-btn:hover { background: rgba(255,107,157,0.10); color: var(--brand-rose); }
+
+/* Messages */
+.msg-bubble-wrap {
+  display: flex; gap: 8px;
+  animation: fadeInUp 0.25s ease both;
+  max-width: 72%;
+}
+.msg-bubble-wrap.mine { flex-direction: row-reverse; margin-left: auto; }
+.msg-bubble {
+  padding: 10px 15px;
+  border-radius: 18px;
+  font-size: 0.92rem; line-height: 1.55;
+  max-width: 100%;
+  word-break: break-word;
+  position: relative;
+}
+.msg-bubble-wrap:not(.mine) .msg-bubble {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-bottom-left-radius: 4px;
+  color: var(--text-primary);
+}
+.msg-bubble-wrap.mine .msg-bubble {
+  background: var(--grad-primary);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+.msg-meta {
+  font-size: 0.68rem; margin-top: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.msg-bubble-wrap:not(.mine) .msg-meta { color: var(--text-muted); }
+.msg-bubble-wrap.mine .msg-meta { color: rgba(255,255,255,0.65); justify-content: flex-end; }
+.msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--grad-primary); display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.7rem;flex-shrink:0;align-self:flex-end; }
+.msg-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.msg-reaction-chip {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  cursor: pointer; transition: background 0.15s;
+}
+.msg-reaction-chip:hover { background: rgba(255,107,157,0.12); }
+.msg-bubble-wrap.mine .msg-reaction-chip { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); color: white; }
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex; gap: 8px; align-items: center;
+  padding: 0 8px; color: var(--text-muted); font-size: 0.82rem;
+  display: none;
+}
+.typing-dots { display: flex; gap: 3px; align-items: center; }
+.typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: typingBounce 1.2s ease infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+
+/* Date separator */
+.date-separator {
+  text-align: center; position: relative; margin: 12px 0;
+  font-size: 0.72rem; color: var(--text-muted);
+}
+.date-separator::before {
+  content: ""; position: absolute; top: 50%; left: 0; right: 0;
+  height: 1px; background: var(--border-light); z-index: 0;
+}
+.date-separator span { background: var(--bg-base); padding: 0 10px; position: relative; z-index: 1; }
+
+/* Emoji Picker */
+.emoji-panel {
+  position: absolute; bottom: 100%; left: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  padding: 14px;
+  display: none; flex-wrap: wrap; gap: 8px;
+  width: 260px; z-index: 50;
+}
+.emoji-panel.open { display: flex; }
+.emoji-panel span { font-size: 1.4rem; cursor: pointer; transition: transform 0.1s; }
+.emoji-panel span:hover { transform: scale(1.25); }
+
+/* Reaction bar on hover */
+.msg-bubble:hover .reaction-bar { display: flex; }
+.reaction-bar {
+  position: absolute; top: -34px; left: 50%; transform: translateX(-50%);
+  background: var(--bg-elevated); border: 1px solid var(--border-light);
+  border-radius: 20px; padding: 5px 10px;
+  display: none; gap: 6px; box-shadow: var(--shadow-md);
+  white-space: nowrap; z-index: 10;
+}
+.reaction-bar span { cursor: pointer; font-size: 1.1rem; transition: transform 0.1s; }
+.reaction-bar span:hover { transform: scale(1.3); }
+
+/* Image message */
+.msg-image { max-width: 220px; border-radius: 12px; cursor: pointer; transition: opacity 0.2s; }
+.msg-image:hover { opacity: 0.9; }
+
+/* No messages state */
+.chat-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: var(--text-muted); gap: 12px; text-align: center; padding: 40px;
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div id="topbar-slot"></div>
+    <div class="chat-layout">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-empty">
+          <div style="font-size:3rem;animation:float 3s ease infinite">💬</div>
+          <div style="font-weight:600;font-size:1.1rem">Loading messages...</div>
+        </div>
+      </div>
+      <div class="typing-indicator" id="typing-indicator">
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+        <span id="typing-name">Your partner is typing...</span>
+      </div>
+      <div class="chat-input-area">
+        <div class="chat-tools">
+          <button class="chat-tool-btn" title="Emoji" onclick="toggleEmojiPanel()">😊</button>
+          <button class="chat-tool-btn" title="Image" onclick="triggerImageUpload()">📷</button>
+          <button class="chat-tool-btn" title="Voice Note" onclick="toggleVoiceRecord()">🎙️</button>
+          <button class="chat-tool-btn" title="Love Note" onclick="window.location='/pages/notes.html'">💌</button>
+          <div style="position:relative">
+            <div class="emoji-panel" id="emoji-panel">
+              ${" ".join([f"<span onclick="insertEmoji('{e}')">{e}</span>" for e in ["❤️","💕","💗","😘","🥰","😍","💋","🌹","✨","🎉","😂","🥲","😊","☺️","💯","🔥","⭐","🌙","🌸","🍀","🦋","💌","🎵","🎶","🫂","👑","💎","🌈","🩷","🫶"]])}
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chat-input" placeholder="Type a message..." rows="1"
+            onkeydown="handleChatKey(event)"
+            oninput="autoResize(this); sendTypingIndicator()"></textarea>
+          <button class="chat-send-btn" onclick="sendMessage()" title="Send">
+            <span>➤</span>
+          </button>
+        </div>
+        <input type="file" id="image-upload" accept="image/*,video/*" style="display:none" onchange="uploadMedia(this)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+const REACTIONS = ["❤️","😂","😢","👍","🔥","😘"];
+let messages = [];
+let replyToId = null;
+let typingTimer = null;
+let coupleId = null;
+
+async function initChat() {
+  if (!requireAuth()) return;
+  const user = AppState.get();
+  coupleId = user?.coupleId;
+
+  document.getElementById("sidebar-slot").innerHTML = Layout.buildSidebar("chat");
+  document.getElementById("topbar-slot").innerHTML = Layout.buildTopbar("💬 Chat");
+  await Layout.init("chat", "Chat");
+
+  if (!coupleId) {
+    document.getElementById("chat-messages").innerHTML = `<div class="chat-empty">
+      <div style="font-size:3rem">💔</div>
+      <div style="font-weight:600">No partner connected</div>
+      <p class="text-sm text-muted">Link your partner first to start chatting!</p>
+      <a href="/index.html" class="btn btn-primary">Connect Partner</a>
+    </div>`;
+    return;
+  }
+
+  await loadMessages();
+
+  // WebSocket
+  if (window.SockJS && window.Stomp) {
+    WS.connect(coupleId, user.id);
+  }
+
+  // Listen for real-time messages
+  document.addEventListener("ws:message", (e) => {
+    appendMessage(e.detail, true);
+    scrollToBottom();
+  });
+  document.addEventListener("ws:typing", (e) => {
+    const detail = e.detail;
+    if (detail.userId !== user.id) {
+      const indicator = document.getElementById("typing-indicator");
+      document.getElementById("typing-name").textContent = `${detail.displayName} is typing...`;
+      indicator.style.display = detail.isTyping ? "flex" : "none";
+    }
+  });
+}
+
+async function loadMessages() {
+  try {
+    const data = await API.messages.list(0);
+    messages = (data?.content || data || []).reverse();
+    renderMessages();
+    scrollToBottom();
+  } catch(e) {
+    console.error(e);
+    document.getElementById("chat-messages").innerHTML = `<div class="chat-empty"><p class="text-muted">Could not load messages</p></div>`;
+  }
+}
+
+function renderMessages() {
+  const container = document.getElementById("chat-messages");
+  if (!messages.length) {
+    container.innerHTML = `<div class="chat-empty">
+      <div style="font-size:3rem;animation:float 3s ease infinite">💌</div>
+      <div style="font-weight:600;font-size:1.1rem">Start your conversation!</div>
+      <p class="text-sm text-muted">Say something sweet 🌸</p>
+    </div>`;
+    return;
+  }
+  const user = AppState.get();
+  let lastDate = null;
+  container.innerHTML = messages.map(m => {
+    const mine = m.senderId === user.id;
+    const date = new Date(m.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    let sep = "";
+    if (date !== lastDate) { sep = `<div class="date-separator"><span>${date}</span></div>`; lastDate = date; }
+    const initials = (m.senderDisplayName || "?").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+
+    let contentHtml = "";
+    if (m.messageType === "IMAGE" && m.mediaUrl) {
+      contentHtml = `<img src="${m.mediaUrl}" class="msg-image" onclick="openImageFull('${m.mediaUrl}')">`;
+    } else if (m.messageType === "VOICE" && m.mediaUrl) {
+      contentHtml = `<audio controls src="${m.mediaUrl}" style="max-width:200px;border-radius:8px"></audio>`;
+    } else {
+      contentHtml = escHtml(m.content || "");
+    }
+
+    const reactionsHtml = m.reactions?.length
+      ? `<div class="msg-reactions">${m.reactions.map(r => `<span class="msg-reaction-chip" title="${r.username}">${r.emoji}</span>`).join("")}</div>`
+      : "";
+    const reactionBar = `<div class="reaction-bar">${REACTIONS.map(e => `<span onclick="reactToMessage(${m.id},'${e}')" title="React ${e}">${e}</span>`).join("")}</div>`;
+
+    return sep + `
+      <div class="msg-bubble-wrap ${mine ? "mine" : ""}">
+        ${!mine ? `<div class="msg-avatar">${initials}</div>` : ""}
+        <div style="display:flex;flex-direction:column">
+          ${!mine ? `<div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);margin-bottom:3px;padding-left:2px">${escHtml(m.senderDisplayName)}</div>` : ""}
+          <div class="msg-bubble" style="position:relative">
+            ${reactionBar}
+            ${contentHtml}
+          </div>
+          ${reactionsHtml}
+          <div class="msg-meta">
+            <span>${DateUtil.formatTime(m.createdAt)}</span>
+            ${mine ? `<span>${m.isRead ? "✓✓" : "✓"}</span>` : ""}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function appendMessage(msg, animate = false) {
+  messages.push(msg);
+  const user = AppState.get();
+  const mine = msg.senderId === user.id;
+  const container = document.getElementById("chat-messages");
+  const initials = (msg.senderDisplayName||"?").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+  const div = document.createElement("div");
+  div.innerHTML = `
+    <div class="msg-bubble-wrap ${mine ? "mine" : ""}">
+      ${!mine ? `<div class="msg-avatar">${initials}</div>` : ""}
+      <div style="display:flex;flex-direction:column">
+        <div class="msg-bubble" style="position:relative">
+          <div class="reaction-bar">${REACTIONS.map(e => `<span onclick="reactToMessage(${msg.id},'${e}')">${e}</span>`).join("")}</div>
+          ${escHtml(msg.content || "")}
+        </div>
+        <div class="msg-meta">
+          <span>${DateUtil.formatTime(msg.createdAt)}</span>
+          ${mine ? "<span>✓</span>" : ""}
+        </div>
+      </div>
+    </div>
+  `.trim();
+  container.appendChild(div.firstElementChild);
+}
+
+async function sendMessage() {
+  const input = document.getElementById("chat-input");
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = ""; autoResize(input);
+  try {
+    const msg = await API.messages.send({ content, messageType: "TEXT", replyToId });
+    replyToId = null;
+    // Optimistic append (WS will also broadcast)
+    scrollToBottom();
+  } catch(e) { Toast.error("Failed to send: " + e.message); input.value = content; }
+}
+
+function handleChatKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 150) + "px";
+}
+
+function scrollToBottom() {
+  const c = document.getElementById("chat-messages");
+  c.scrollTop = c.scrollHeight;
+}
+
+function sendTypingIndicator() {
+  clearTimeout(typingTimer);
+  if (coupleId) WS.send("/chat.typing", { coupleId, isTyping: true });
+  typingTimer = setTimeout(() => {
+    if (coupleId) WS.send("/chat.typing", { coupleId, isTyping: false });
+  }, 2000);
+}
+
+async function reactToMessage(msgId, emoji) {
+  try {
+    await API.messages.react(msgId, emoji);
+  } catch(e) { Toast.error(e.message); }
+}
+
+function toggleEmojiPanel() {
+  document.getElementById("emoji-panel").classList.toggle("open");
+}
+function insertEmoji(e) {
+  const input = document.getElementById("chat-input");
+  const pos = input.selectionStart;
+  input.value = input.value.slice(0, pos) + e + input.value.slice(pos);
+  input.focus();
+  document.getElementById("emoji-panel").classList.remove("open");
+}
+
+function triggerImageUpload() { document.getElementById("image-upload").click(); }
+
+async function uploadMedia(input) {
+  const file = input.files[0]; if (!file) return;
+  Toast.info("Uploading...");
+  try {
+    const isVideo = file.type.startsWith("video/");
+    const result = isVideo ? await API.upload.video(file) : await API.upload.image(file);
+    await API.messages.send({ content: null, messageType: isVideo ? "VIDEO" : "IMAGE", mediaUrl: result.url });
+    Toast.success("Media sent!");
+  } catch(e) { Toast.error(e.message); }
+  input.value = "";
+}
+
+function toggleVoiceRecord() {
+  Toast.info("Voice recording — tap mic to record & upload an audio file 🎙️");
+}
+
+function openImageFull(url) {
+  const overlay = document.createElement("div");
+  overlay.style = "position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out";
+  overlay.innerHTML = `<img src="${url}" style="max-width:92vw;max-height:92vh;border-radius:16px">`;
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+document.addEventListener("DOMContentLoaded", initChat);
+document.addEventListener("click", e => { if (!e.target.closest(".emoji-panel") && !e.target.closest(".chat-tool-btn")) { document.getElementById("emoji-panel")?.classList.remove("open"); } });
+</script>
+</body>
+</html>

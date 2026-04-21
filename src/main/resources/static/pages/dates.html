@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSync — Special Dates</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/variables.css"><link rel="stylesheet" href="/css/main.css">
+<style>
+.dates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.date-card {
+  border-radius: 18px; padding: 20px;
+  border: 1px solid var(--border-light); background: var(--bg-card);
+  box-shadow: var(--shadow-sm); transition: all 0.25s var(--ease-spring);
+  cursor: default; position: relative; overflow: hidden;
+}
+.date-card::before { content:""; position:absolute; top:-20px;right:-20px; width:80px;height:80px; border-radius:50%; opacity:0.12; }
+.date-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.date-card .event-icon { font-size:1.8rem; margin-bottom:10px; }
+.date-card .event-title { font-weight:700; font-size:1rem; margin-bottom:4px; }
+.date-card .event-date-str { font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; }
+.countdown-badge { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; }
+.countdown-today { background:rgba(255,107,157,0.15); color:var(--brand-rose); }
+.countdown-soon { background:rgba(251,191,36,0.15); color:#b45309; }
+.countdown-normal { background:rgba(148,163,184,0.15); color:var(--text-muted); }
+.date-actions { position:absolute; top:12px; right:12px; display:none; gap:6px; }
+.date-card:hover .date-actions { display:flex; }
+.icon-selector { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+.icon-btn { padding:8px; border-radius:10px; border:2px solid var(--border-light); cursor:pointer; font-size:1.2rem; text-align:center; transition:all 0.15s; }
+.icon-btn:hover, .icon-btn.selected { border-color:var(--brand-rose); background:rgba(255,107,157,0.10); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div id="topbar-slot"></div>
+    <main class="page">
+      <div class="page-header">
+        <div><h1 class="page-title">🗓️ Special Dates</h1><p class="page-subtitle">Celebrate every milestone, big or small</p></div>
+        <button class="btn btn-primary" onclick="Modal.open('add-date-modal')">+ Add Date</button>
+      </div>
+
+      <!-- Upcoming spotlight -->
+      <div id="next-event-card" style="margin-bottom:24px"></div>
+
+      <!-- All events -->
+      <div class="dates-grid stagger-children" id="dates-grid">
+        <div class="skeleton" style="height:160px;border-radius:18px"></div>
+        <div class="skeleton" style="height:160px;border-radius:18px"></div>
+        <div class="skeleton" style="height:160px;border-radius:18px"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Add/Edit Date Modal -->
+<div class="modal-overlay" id="add-date-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="date-modal-title">🗓️ Add Special Date</h3>
+      <button onclick="Modal.close('add-date-modal')" style="font-size:1.3rem;opacity:0.5">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" class="form-control" id="ev-title" placeholder="Anniversary, Birthday..."></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Date *</label><input type="date" class="form-control" id="ev-date"></div>
+        <div class="form-group"><label class="form-label">Type</label>
+          <select class="form-control" id="ev-type">
+            <option value="ANNIVERSARY">Anniversary</option>
+            <option value="BIRTHDAY">Birthday</option>
+            <option value="FIRST_DATE">First Date</option>
+            <option value="MILESTONE">Milestone</option>
+            <option value="HOLIDAY">Holiday</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="ev-desc" rows="2"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <input type="color" class="form-control" id="ev-color" value="#FF6B9D" style="height:44px;cursor:pointer">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reminder (days before)</label>
+          <input type="number" class="form-control" id="ev-reminder" value="7" min="0" max="365">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Icon</label>
+        <div class="icon-selector" id="icon-selector">
+          <div class="icon-btn selected" data-icon="💗" onclick="selectIcon(this)">💗</div>
+          <div class="icon-btn" data-icon="🎂" onclick="selectIcon(this)">🎂</div>
+          <div class="icon-btn" data-icon="💍" onclick="selectIcon(this)">💍</div>
+          <div class="icon-btn" data-icon="🌹" onclick="selectIcon(this)">🌹</div>
+          <div class="icon-btn" data-icon="⭐" onclick="selectIcon(this)">⭐</div>
+          <div class="icon-btn" data-icon="🎉" onclick="selectIcon(this)">🎉</div>
+          <div class="icon-btn" data-icon="🏠" onclick="selectIcon(this)">🏠</div>
+          <div class="icon-btn" data-icon="✈️" onclick="selectIcon(this)">✈️</div>
+          <div class="icon-btn" data-icon="🎓" onclick="selectIcon(this)">🎓</div>
+          <div class="icon-btn" data-icon="💼" onclick="selectIcon(this)">💼</div>
+          <div class="icon-btn" data-icon="🎵" onclick="selectIcon(this)">🎵</div>
+          <div class="icon-btn" data-icon="🌙" onclick="selectIcon(this)">🌙</div>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="ev-recurring" style="width:18px;height:18px;accent-color:var(--brand-rose)">
+        <label for="ev-recurring" style="font-weight:500;font-size:0.9rem">Recurring every year</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-date-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDate()">Save Date 💕</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="/js/api.js"></script><script src="/js/ui.js"></script>
+<script>
+let editingId = null, selectedIcon = "💗";
+const TYPE_EMOJIS = { ANNIVERSARY:"💗", BIRTHDAY:"🎂", FIRST_DATE:"🌹", MILESTONE:"⭐", HOLIDAY:"🎉", OTHER:"🗓️" };
+
+async function initDates() {
+  if (!requireAuth()) return;
+  document.getElementById("sidebar-slot").innerHTML = Layout.buildSidebar("dates");
+  document.getElementById("topbar-slot").innerHTML = Layout.buildTopbar("🗓️ Special Dates");
+  await Layout.init("dates", "Special Dates");
+  await loadDates();
+}
+
+async function loadDates() {
+  try {
+    const dates = await API.dates.all();
+    renderDates(dates || []);
+    renderNextEvent(dates || []);
+  } catch(e) { Toast.error(e.message); }
+}
+
+function renderNextEvent(dates) {
+  const upcoming = dates.filter(d=>d.daysUntil >= 0).sort((a,b)=>a.daysUntil-b.daysUntil);
+  const next = upcoming[0];
+  const el = document.getElementById("next-event-card");
+  if (!next) { el.innerHTML = ""; return; }
+  const du = next.daysUntil;
+  el.innerHTML = `
+    <div style="padding:24px 26px;background:var(--grad-primary);border-radius:20px;color:white;display:flex;align-items:center;gap:20px">
+      <div style="font-size:3rem">${next.icon||TYPE_EMOJIS[next.eventType]||"💗"}</div>
+      <div style="flex:1">
+        <div style="font-size:0.78rem;opacity:0.8;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Next Up</div>
+        <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;margin-bottom:4px">${next.title}</div>
+        <div style="opacity:0.85;font-size:0.88rem">${new Date(next.eventDate).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</div>
+      </div>
+      <div style="text-align:center;background:rgba(255,255,255,0.20);border-radius:16px;padding:16px 22px">
+        <div style="font-size:2rem;font-weight:800;font-family:var(--font-display)">${du===0?"🎉":du}</div>
+        <div style="font-size:0.72rem;opacity:0.85;font-weight:600">${du===0?"TODAY":du===1?"DAY":"DAYS"}</div>
+      </div>
+    </div>`;
+}
+
+function renderDates(dates) {
+  const grid = document.getElementById("dates-grid");
+  if (!dates.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px">
+      <div style="font-size:3rem;margin-bottom:12px">🗓️</div>
+      <div style="font-weight:600;margin-bottom:8px">No special dates yet</div>
+      <button class="btn btn-primary" onclick="Modal.open('add-date-modal')">Add Your First Date</button>
+    </div>`;
+    return;
+  }
+  const sorted = [...dates].sort((a,b)=>a.daysUntil-b.daysUntil);
+  grid.innerHTML = sorted.map(d => {
+    const du = d.daysUntil;
+    const countClass = du===0?"countdown-today":du<=14?"countdown-soon":"countdown-normal";
+    const countLabel = du===0?"Today! 🎉":du<0?`${Math.abs(du)} days ago`:`In ${du} days`;
+    const icon = d.icon||TYPE_EMOJIS[d.eventType]||"🗓️";
+    return `<div class="date-card" style="border-left:4px solid ${d.colorHex||"#FF6B9D"}">
+      <div class="date-actions">
+        <button class="btn btn-icon" onclick="editDate(${JSON.stringify(d).replace(/"/g,"&quot;")})">✏️</button>
+        <button class="btn btn-icon" onclick="deleteDate(${d.id})">🗑️</button>
+      </div>
+      <div class="event-icon">${icon}</div>
+      <div class="event-title">${d.title}</div>
+      <div class="event-date-str">${new Date(d.eventDate).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}${d.isRecurring?"  🔁":""}</div>
+      <div class="countdown-badge ${countClass}">${countLabel}</div>
+      ${d.description?`<div style="font-size:0.78rem;color:var(--text-muted);margin-top:10px">${d.description}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function selectIcon(el) {
+  document.querySelectorAll(".icon-btn").forEach(b=>b.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedIcon = el.dataset.icon;
+}
+
+async function saveDate() {
+  const title = document.getElementById("ev-title").value.trim();
+  const date  = document.getElementById("ev-date").value;
+  if (!title||!date) { Toast.warn("Title and date are required"); return; }
+  const payload = {
+    title, eventDate: date,
+    description: document.getElementById("ev-desc").value,
+    eventType: document.getElementById("ev-type").value,
+    colorHex: document.getElementById("ev-color").value,
+    reminderDays: parseInt(document.getElementById("ev-reminder").value)||7,
+    isRecurring: document.getElementById("ev-recurring").checked,
+    icon: selectedIcon
+  };
+  try {
+    if (editingId) await API.dates.update(editingId, payload);
+    else await API.dates.create(payload);
+    Toast.success(editingId?"Updated!":"Date added! 🎉");
+    Modal.close("add-date-modal"); editingId=null;
+    await loadDates();
+  } catch(e) { Toast.error(e.message); }
+}
+
+function editDate(d) {
+  editingId = d.id;
+  document.getElementById("date-modal-title").textContent = "✏️ Edit Date";
+  document.getElementById("ev-title").value = d.title;
+  document.getElementById("ev-date").value = d.eventDate;
+  document.getElementById("ev-type").value = d.eventType;
+  document.getElementById("ev-color").value = d.colorHex||"#FF6B9D";
+  document.getElementById("ev-desc").value = d.description||"";
+  document.getElementById("ev-reminder").value = d.reminderDays||7;
+  document.getElementById("ev-recurring").checked = d.isRecurring;
+  selectedIcon = d.icon||"💗";
+  document.querySelectorAll(".icon-btn").forEach(b=>{
+    b.classList.toggle("selected", b.dataset.icon === selectedIcon);
+  });
+  Modal.open("add-date-modal");
+}
+
+async function deleteDate(id) {
+  if (!confirm("Delete this date?")) return;
+  try { await API.dates.delete(id); Toast.success("Deleted"); await loadDates(); }
+  catch(e) { Toast.error(e.message); }
+}
+
+document.addEventListener("DOMContentLoaded", initDates);
+</script>
+</body>

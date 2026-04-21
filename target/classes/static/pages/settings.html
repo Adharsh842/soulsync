@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSync — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display.swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/variables.css"><link rel="stylesheet" href="/css/main.css">
+<style>
+.settings-section { margin-bottom: 28px; }
+.settings-section-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light); }
+.settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border-light); }
+.settings-row:last-child { border-bottom: none; }
+.settings-row-info { flex: 1; }
+.settings-row-info .label { font-weight: 500; font-size: 0.92rem; }
+.settings-row-info .desc  { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+.toggle { position: relative; width: 44px; height: 24px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: var(--border-medium); border-radius: 24px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.toggle-slider::before {
+  content: ""; position: absolute; height: 18px; width: 18px;
+  left: 3px; bottom: 3px;
+  background: white; border-radius: 50%;
+  transition: transform 0.2s var(--ease-spring);
+}
+input:checked + .toggle-slider { background: var(--brand-rose); }
+input:checked + .toggle-slider::before { transform: translateX(20px); }
+.avatar-upload { position: relative; cursor: pointer; }
+.avatar-upload-overlay {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.1rem;
+  opacity: 0; transition: opacity 0.2s;
+}
+.avatar-upload:hover .avatar-upload-overlay { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div id="topbar-slot"></div>
+    <main class="page">
+      <div class="page-header">
+        <div><h1 class="page-title">⚙️ Settings</h1><p class="page-subtitle">Customize your SoulSync experience</p></div>
+        <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:28px">
+
+        <!-- Left: Profile + Preferences -->
+        <div>
+          <!-- Profile -->
+          <div class="card settings-section" style="margin-bottom:24px">
+            <div class="card-header"><span class="card-title">👤 Profile</span></div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px">
+                <div class="avatar-upload" onclick="document.getElementById('avatar-input').click()">
+                  <div class="avatar avatar-xl" id="avatar-display" style="font-size:2rem">?</div>
+                  <div class="avatar-upload-overlay">📷</div>
+                  <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:1.1rem" id="profile-name-display">Loading...</div>
+                  <div style="color:var(--text-muted);font-size:0.85rem" id="profile-username-display">@username</div>
+                  <div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px" id="profile-email-display">email</div>
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">Display Name</label><input type="text" class="form-control" id="edit-display-name" placeholder="Your name"></div>
+              <div class="form-group"><label class="form-label">Bio</label><textarea class="form-control" id="edit-bio" rows="3" placeholder="A little something about you..."></textarea></div>
+              <div class="form-group"><label class="form-label">Timezone</label>
+                <select class="form-control" id="edit-timezone">
+                  <option value="UTC">UTC</option>
+                  <option value="America/New_York">Eastern (US)</option>
+                  <option value="America/Chicago">Central (US)</option>
+                  <option value="America/Los_Angeles">Pacific (US)</option>
+                  <option value="Europe/London">London</option>
+                  <option value="Europe/Paris">Paris</option>
+                  <option value="Asia/Kolkata">India</option>
+                  <option value="Asia/Tokyo">Tokyo</option>
+                  <option value="Australia/Sydney">Sydney</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferences -->
+          <div class="card settings-section" style="margin-bottom:24px">
+            <div class="card-header"><span class="card-title">🎨 Preferences</span></div>
+            <div class="card-body">
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="label">Dark Mode</div>
+                  <div class="desc">Switch between light and dark theme</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="theme-toggle-check" onchange="toggleTheme(this)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="label">Sound Notifications</div>
+                  <div class="desc">Play sound on new messages</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="sound-toggle" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="label">Mood Reminder</div>
+                  <div class="desc">Daily reminder to log your mood</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="mood-reminder-toggle" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="card settings-section">
+            <div class="card-header"><span class="card-title">🔐 Security</span></div>
+            <div class="card-body">
+              <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-control" id="curr-pw" placeholder="••••••••"></div>
+              <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-control" id="new-pw" placeholder="••••••••" minlength="8"></div>
+              <div class="form-group"><label class="form-label">Confirm New Password</label><input type="password" class="form-control" id="confirm-pw" placeholder="••••••••"></div>
+              <button class="btn btn-secondary" onclick="changePassword()">Change Password</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Couple Info -->
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header"><span class="card-title">💑 Your Couple</span></div>
+            <div class="card-body" id="couple-info-section">
+              <div class="skeleton" style="height:120px;border-radius:12px"></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header"><span class="card-title">📊 Stats</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:12px" id="stats-section">
+              <div class="skeleton" style="height:48px;border-radius:10px"></div>
+              <div class="skeleton" style="height:48px;border-radius:10px"></div>
+            </div>
+          </div>
+
+          <div class="card" style="border:1px solid rgba(239,68,68,0.2)">
+            <div class="card-header"><span class="card-title" style="color:#ef4444">⚠️ Danger Zone</span></div>
+            <div class="card-body">
+              <p class="text-sm text-muted" style="margin-bottom:12px">These actions cannot be undone.</p>
+              <button class="btn btn-secondary w-full" style="border-color:rgba(239,68,68,0.3);color:#ef4444;margin-bottom:8px" onclick="if(confirm('Log out from all devices?'))API.auth.logout().then(()=>{API.clearTokens();window.location='/index.html'})">
+                🚪 Logout All Devices
+              </button>
+              <button class="btn btn-secondary w-full" style="border-color:rgba(239,68,68,0.3);color:#ef4444" onclick="alert('Contact support to delete your account')">
+                🗑️ Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="/js/api.js"></script><script src="/js/ui.js"></script>
+<script>
+async function initSettings() {
+  if (!requireAuth()) return;
+  document.getElementById("sidebar-slot").innerHTML = Layout.buildSidebar("settings");
+  document.getElementById("topbar-slot").innerHTML = Layout.buildTopbar("⚙️ Settings");
+  await Layout.init("settings", "Settings");
+
+  const user = AppState.get();
+  if (user) {
+    document.getElementById("profile-name-display").textContent = user.displayName || "—";
+    document.getElementById("profile-username-display").textContent = "@" + (user.username || "");
+    document.getElementById("profile-email-display").textContent = user.email || "";
+    document.getElementById("edit-display-name").value = user.displayName || "";
+    document.getElementById("edit-bio").value = user.bio || "";
+    const initials = (user.displayName||"U").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+    const avatarEl = document.getElementById("avatar-display");
+    if (user.avatarUrl) avatarEl.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    else avatarEl.textContent = initials;
+  }
+
+  // Theme toggle state
+  const theme = localStorage.getItem("ss_theme") || "light";
+  document.getElementById("theme-toggle-check").checked = theme === "dark";
+
+  loadCoupleInfo();
+  loadStats();
+}
+
+async function loadCoupleInfo() {
+  const user = AppState.get();
+  const el = document.getElementById("couple-info-section");
+  if (!user?.coupleId) {
+    el.innerHTML = `<div style="text-align:center;padding:20px">
+      <div style="font-size:2rem;margin-bottom:8px">💔</div>
+      <p class="text-sm text-muted" style="margin-bottom:12px">No partner connected yet</p>
+      <button class="btn btn-primary btn-sm" onclick="window.location='/index.html'">Connect Partner</button>
+    </div>`;
+    return;
+  }
+  try {
+    const code = await API.auth.inviteCode();
+    el.innerHTML = `
+      <div style="text-align:center;padding:16px;background:linear-gradient(135deg,rgba(255,107,157,0.10),rgba(201,177,255,0.10));border-radius:14px;margin-bottom:14px">
+        <div style="font-size:2rem;margin-bottom:8px">💑</div>
+        <div style="font-weight:700;margin-bottom:4px">Couple #${user.coupleId}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">You're connected!</div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px">Invite code (share with partner)</div>
+        <div style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;background:rgba(255,107,157,0.08);padding:12px;border-radius:10px;text-align:center;cursor:pointer;color:var(--brand-rose)"
+             onclick="navigator.clipboard.writeText('${code.code}');Toast.success('Copied!')">${code.code}</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin-top:4px">Click to copy</div>
+      </div>
+    `;
+  } catch {}
+}
+
+async function loadStats() {
+  const el = document.getElementById("stats-section");
+  try {
+    const [moodData, memData] = await Promise.allSettled([API.moods.analytics(30), API.memories.timeline(0)]);
+    const stats = [
+      { icon:"💫", label:"Avg Mood (30d)", value: moodData.status==="fulfilled"?(moodData.value.averageMoodScore?.toFixed(1)||"—"):"—" },
+      { icon:"📸", label:"Total Memories", value: memData.status==="fulfilled"?(memData.value?.totalElements||"—"):"—" },
+      { icon:"📊", label:"Mood Entries",   value: moodData.status==="fulfilled"?(moodData.value.totalEntries||0):"—" },
+    ];
+    el.innerHTML = stats.map(s => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg-card);border:1px solid var(--border-light);border-radius:10px">
+        <span style="font-size:1.2rem">${s.icon}</span>
+        <div style="flex:1"><div style="font-size:0.8rem;color:var(--text-muted)">${s.label}</div></div>
+        <div style="font-weight:700;color:var(--brand-rose)">${s.value}</div>
+      </div>
+    `).join("");
+  } catch {}
+}
+
+function toggleTheme(checkbox) {
+  Theme.apply(checkbox.checked ? "dark" : "light");
+}
+
+async function uploadAvatar(input) {
+  const file = input.files[0]; if (!file) return;
+  try {
+    Toast.info("Uploading avatar...");
+    const res = await API.upload.avatar(file);
+    const user = AppState.get();
+    if (user) { user.avatarUrl = res.url; AppState.set(user); }
+    const el = document.getElementById("avatar-display");
+    el.innerHTML = `<img src="${res.url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    Toast.success("Avatar updated!");
+  } catch(e) { Toast.error(e.message); }
+}
+
+async function saveProfile() {
+  const displayName = document.getElementById("edit-display-name").value.trim();
+  if (!displayName) { Toast.warn("Display name is required"); return; }
+  // In production: call PUT /users/me endpoint
+  const user = AppState.get();
+  if (user) {
+    user.displayName = displayName;
+    user.bio = document.getElementById("edit-bio").value;
+    AppState.set(user);
+  }
+  Toast.success("Profile saved! ✨");
+  document.getElementById("profile-name-display").textContent = displayName;
+}
+
+async function changePassword() {
+  const curr = document.getElementById("curr-pw").value;
+  const next = document.getElementById("new-pw").value;
+  const conf = document.getElementById("confirm-pw").value;
+  if (!curr || !next || !conf) { Toast.warn("Fill in all password fields"); return; }
+  if (next !== conf) { Toast.error("New passwords do not match"); return; }
+  if (next.length < 8) { Toast.error("Password must be at least 8 characters"); return; }
+  Toast.info("Password change coming soon! (implement PUT /users/me/password)");
+}
+
+document.addEventListener("DOMContentLoaded", initSettings);
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSync — Memories</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/variables.css"><link rel="stylesheet" href="/css/main.css">
+<style>
+.memory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.memory-card { border-radius: 20px; overflow: hidden; background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); transition: all 0.3s var(--ease-spring); cursor: pointer; }
+.memory-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.memory-thumb { aspect-ratio: 4/3; background: rgba(255,107,157,0.08); position: relative; overflow: hidden; }
+.memory-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.memory-card:hover .memory-thumb img { transform: scale(1.05); }
+.memory-thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+.memory-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border-radius: 8px; padding: 3px 8px; font-size: 0.72rem; font-weight: 600; }
+.memory-fav { position: absolute; top: 10px; left: 10px; font-size: 1.2rem; cursor: pointer; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3)); }
+.memory-body { padding: 14px; }
+.memory-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 5px; truncate: true; }
+.memory-caption { font-size: 0.8rem; color: var(--text-muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.memory-meta { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.72rem; color: var(--text-muted); }
+.memory-tag { background: rgba(255,107,157,0.10); color: var(--brand-rose); border-radius: 20px; padding: 2px 8px; font-size: 0.68rem; font-weight: 600; }
+.upload-zone { border: 2px dashed var(--border-medium); border-radius: 20px; padding: 36px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 24px; background: rgba(255,107,157,0.02); }
+.upload-zone:hover { border-color: var(--brand-rose); background: rgba(255,107,157,0.05); }
+.filter-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.filter-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-medium); font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; background: var(--bg-card); }
+.filter-chip:hover, .filter-chip.active { background: var(--brand-rose); color: white; border-color: var(--brand-rose); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div id="topbar-slot"></div>
+    <main class="page">
+      <div class="page-header">
+        <div><h1 class="page-title">📸 Memory Timeline</h1><p class="page-subtitle">Your shared story, beautifully preserved</p></div>
+        <button class="btn btn-primary" onclick="Modal.open('upload-modal')">+ Add Memory</button>
+      </div>
+
+      <!-- On This Day Banner -->
+      <div id="otd-banner" style="display:none;margin-bottom:20px;padding:18px 20px;background:linear-gradient(135deg,rgba(255,107,157,0.12),rgba(201,177,255,0.12));border:1px solid rgba(255,107,157,0.2);border-radius:18px">
+        <div style="font-weight:700;margin-bottom:4px">📅 On This Day</div>
+        <div id="otd-memories" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:4px"></div>
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="filter-chips">
+        <div class="filter-chip active" data-type="ALL" onclick="filterMemories(this)">All</div>
+        <div class="filter-chip" data-type="PHOTO" onclick="filterMemories(this)">📷 Photos</div>
+        <div class="filter-chip" data-type="VIDEO" onclick="filterMemories(this)">🎬 Videos</div>
+        <div class="filter-chip" data-type="VOICE" onclick="filterMemories(this)">🎵 Voice</div>
+        <div class="filter-chip" data-type="FAVORITES" onclick="filterMemories(this)">❤️ Favorites</div>
+      </div>
+
+      <!-- Memories Grid -->
+      <div class="memory-grid stagger-children" id="memories-grid">
+        ${" ".join(["<div class='skeleton' style='height:280px;border-radius:20px'></div>"]*6)}
+      </div>
+      <div id="load-more-wrap" style="text-align:center;margin-top:28px;display:none">
+        <button class="btn btn-secondary" onclick="loadMore()">Load More</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">📸 Add Memory</h3>
+      <button onclick="Modal.close('upload-modal')" style="font-size:1.3rem;opacity:0.5">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondrop="handleDrop(event)" ondragover="event.preventDefault()">
+        <div style="font-size:2.5rem;margin-bottom:8px">📸</div>
+        <div style="font-weight:600;margin-bottom:4px">Drop photo/video or click to browse</div>
+        <div class="text-muted text-sm">Supports JPG, PNG, MP4, WebM (max 50MB)</div>
+        <div id="upload-preview" style="margin-top:12px"></div>
+      </div>
+      <input type="file" id="file-input" accept="image/*,video/*,audio/*" style="display:none" onchange="previewFile(this)">
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" class="form-control" id="mem-title" placeholder="Name this memory..." maxlength="300"></div>
+      <div class="form-group"><label class="form-label">Caption</label><textarea class="form-control" id="mem-caption" placeholder="What makes this moment special?" rows="3"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-control" id="mem-date"></div>
+        <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-control" id="mem-location" placeholder="Where was this?"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Tags (comma separated)</label><input type="text" class="form-control" id="mem-tags" placeholder="vacation, dinner, special..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('upload-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadMemory()" id="upload-btn">Save Memory 💕</button>
+    </div>
+  </div>
+</div>
+
+<!-- Memory View Modal -->
+<div class="modal-overlay" id="view-modal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="view-title">Memory</h3>
+      <button onclick="Modal.close('view-modal')" style="font-size:1.3rem;opacity:0.5">×</button>
+    </div>
+    <div class="modal-body" id="view-body"></div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="/js/api.js"></script><script src="/js/ui.js"></script>
+<script>
+let page = 0, allLoaded = false, currentType = "ALL", uploadedUrl = null, uploadedType = "PHOTO";
+let memories = [];
+
+async function initTimeline() {
+  if (!requireAuth()) return;
+  document.getElementById("sidebar-slot").innerHTML = Layout.buildSidebar("timeline");
+  document.getElementById("topbar-slot").innerHTML = Layout.buildTopbar("📸 Memories");
+  await Layout.init("timeline", "Memories");
+  document.getElementById("mem-date").value = new Date().toISOString().split("T")[0];
+  await loadMemories();
+  loadOnThisDay();
+}
+
+async function loadMemories(reset = true) {
+  if (reset) { page = 0; allLoaded = false; memories = []; }
+  try {
+    const data = await API.memories.timeline(page);
+    const list = data?.content || data || [];
+    memories = [...memories, ...list];
+    const total = data?.totalElements;
+    if (list.length < 20 || memories.length >= total) allLoaded = true;
+    renderMemories();
+    document.getElementById("load-more-wrap").style.display = allLoaded ? "none" : "block";
+  } catch(e) { Toast.error(e.message); }
+}
+
+function renderMemories() {
+  const grid = document.getElementById("memories-grid");
+  const filtered = currentType === "ALL" ? memories : currentType === "FAVORITES" ? memories.filter(m=>m.isFavorite) : memories.filter(m=>m.mediaType===currentType);
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px">
+      <div style="font-size:3rem;margin-bottom:12px">📸</div>
+      <div style="font-weight:600;margin-bottom:8px">No memories yet</div>
+      <p class="text-muted text-sm" style="margin-bottom:16px">Capture your first moment together!</p>
+      <button class="btn btn-primary" onclick="Modal.open('upload-modal')">+ Add Memory</button>
+    </div>`; return;
+  }
+  grid.innerHTML = filtered.map(m => `
+    <div class="memory-card" onclick="viewMemory(${m.id})">
+      <div class="memory-thumb">
+        ${m.mediaType==="PHOTO" && m.mediaUrl
+          ? `<img src="${m.mediaUrl}" alt="${m.title}" loading="lazy">`
+          : `<div class="memory-thumb-placeholder">${m.mediaType==="VIDEO"?"🎬":m.mediaType==="VOICE"?"🎵":"📄"}</div>`}
+        ${m.mediaType!=="PHOTO"?`<div class="memory-badge">${m.mediaType}</div>`:""}
+        <div class="memory-fav" onclick="toggleFav(event,${m.id})">${m.isFavorite?"❤️":"🤍"}</div>
+      </div>
+      <div class="memory-body">
+        <div class="memory-title">${m.title}</div>
+        ${m.caption?`<div class="memory-caption">${m.caption}</div>`:""}
+        <div class="memory-meta">
+          <span>${m.memoryDate?new Date(m.memoryDate).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):""}</span>
+          ${m.locationName?`<span>📍 ${m.locationName}</span>`:""}
+          ${m.tags?.length?`<div>${m.tags.slice(0,2).map(t=>`<span class="memory-tag">${t}</span>`).join("")}</div>`:""}
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function loadOnThisDay() {
+  try {
+    const otd = await API.memories.onThisDay();
+    if (!otd.length) return;
+    document.getElementById("otd-banner").style.display = "block";
+    document.getElementById("otd-memories").innerHTML = otd.map(m=>`
+      <div onclick="viewMemory(${m.id})" style="flex-shrink:0;width:80px;cursor:pointer">
+        <div style="width:80px;height:80px;border-radius:12px;overflow:hidden;background:var(--border-light)">
+          ${m.mediaType==="PHOTO"?`<img src="${m.mediaUrl}" style="width:100%;height:100%;object-fit:cover">`:
+            `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem">📸</div>`}
+        </div>
+        <div style="font-size:0.65rem;text-align:center;margin-top:4px;color:var(--text-muted)">${new Date(m.memoryDate).getFullYear()}</div>
+      </div>
+    `).join("");
+  } catch {}
+}
+
+function filterMemories(chip) {
+  document.querySelectorAll(".filter-chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  currentType = chip.dataset.type;
+  renderMemories();
+}
+
+async function toggleFav(e, id) {
+  e.stopPropagation();
+  try {
+    const res = await API.memories.favorite(id);
+    const idx = memories.findIndex(m=>m.id===id);
+    if (idx>=0) memories[idx].isFavorite = res.isFavorite;
+    renderMemories();
+  } catch(e) { Toast.error(e.message); }
+}
+
+async function viewMemory(id) {
+  try {
+    const m = await API.memories.get(id);
+    document.getElementById("view-title").textContent = m.title;
+    document.getElementById("view-body").innerHTML = `
+      <div style="border-radius:16px;overflow:hidden;margin-bottom:16px;background:var(--border-light);max-height:400px">
+        ${m.mediaType==="PHOTO"?`<img src="${m.mediaUrl}" style="width:100%;object-fit:contain;max-height:400px">`:
+          m.mediaType==="VIDEO"?`<video controls src="${m.mediaUrl}" style="width:100%;max-height:400px"></video>`:
+          m.mediaType==="VOICE"?`<div style="padding:20px"><audio controls src="${m.mediaUrl}" style="width:100%"></audio></div>`:""}
+      </div>
+      ${m.caption?`<p style="margin-bottom:12px;line-height:1.6">${m.caption}</p>`:""}
+      <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:0.82rem;color:var(--text-muted)">
+        ${m.memoryDate?`<span>📅 ${new Date(m.memoryDate).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</span>`:""}
+        ${m.locationName?`<span>📍 ${m.locationName}</span>`:""}
+        <span>👁️ ${m.viewCount} views</span>
+        ${m.tags?.length?m.tags.map(t=>`<span class="memory-tag">${t}</span>`).join(""):""}
+      </div>
+    `;
+    Modal.open("view-modal");
+  } catch(e) { Toast.error(e.message); }
+}
+
+function previewFile(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const isVideo = file.type.startsWith("video/");
+    const isAudio = file.type.startsWith("audio/");
+    uploadedType = isVideo?"VIDEO":isAudio?"VOICE":"PHOTO";
+    document.getElementById("upload-preview").innerHTML = isVideo
+      ? `<video src="${e.target.result}" style="max-height:140px;border-radius:10px;max-width:100%"></video>`
+      : isAudio ? `<audio controls src="${e.target.result}"></audio>`
+      : `<img src="${e.target.result}" style="max-height:140px;border-radius:10px;max-width:100%">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) { document.getElementById("file-input").files = e.dataTransfer.files; previewFile(document.getElementById("file-input")); }
+}
+
+async function uploadMemory() {
+  const title = document.getElementById("mem-title").value.trim();
+  if (!title) { Toast.warn("Please enter a title"); return; }
+  const fileInput = document.getElementById("file-input");
+  let mediaUrl = null;
+  if (fileInput.files[0]) {
+    Toast.info("Uploading file...");
+    try {
+      const file = fileInput.files[0];
+      const isVideo = file.type.startsWith("video/");
+      const isAudio = file.type.startsWith("audio/");
+      const res = isVideo ? await API.upload.video(file) : isAudio ? await API.upload.audio(file) : await API.upload.image(file);
+      mediaUrl = res.url;
+    } catch(e) { Toast.error("Upload failed: "+e.message); return; }
+  } else { Toast.warn("Please select a file"); return; }
+  try {
+    const tags = document.getElementById("mem-tags").value.split(",").map(t=>t.trim()).filter(Boolean);
+    await API.memories.create({
+      title, caption: document.getElementById("mem-caption").value,
+      mediaUrl, mediaType: uploadedType,
+      memoryDate: document.getElementById("mem-date").value || null,
+      locationName: document.getElementById("mem-location").value || null,
+      tags
+    });
+    Toast.success("Memory saved! 💕");
+    Modal.close("upload-modal");
+    await loadMemories();
+  } catch(e) { Toast.error(e.message); }
+}
+
+async function loadMore() { page++; await loadMemories(false); }
+
+document.addEventListener("DOMContentLoaded", initTimeline);
+</script>
+</body>
+</html>

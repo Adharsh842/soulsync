@@ -1,0 +1,122 @@
+/* ================================================================
+   SoulSync Design System — Luxury Romantic Edition
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=Instrument+Serif:ital@0;1&display=swap');
+
+:root {
+  /* === RICH COLOR PALETTE === */
+  --rose:          #F43F75;
+  --rose-light:    #FF85A8;
+  --rose-dark:     #C81652;
+  --rose-glow:     rgba(244, 63, 117, 0.35);
+  --peach:         #FFB085;
+  --lavender:      #B8A4FF;
+  --lavender-mid:  #8B6FE8;
+  --violet:        #6C3DE0;
+  --sky:           #93C5FD;
+  --mint:          #6EE7B7;
+  --gold:          #F59E0B;
+  --gold-light:    #FDE68A;
+  --blush:         #FECDD3;
+
+  /* === LIGHT THEME === */
+  --bg-primary:      #FEF6F9;
+  --bg-secondary:    #FFFFFF;
+  --bg-tertiary:     #FFF0F5;
+  --bg-card:         rgba(255,255,255,0.85);
+  --bg-glass:        rgba(255,248,252,0.7);
+  --bg-glass-hover:  rgba(255,255,255,0.95);
+  --bg-overlay:      rgba(244, 63, 117, 0.06);
+  --bg-overlay-2:    rgba(139, 111, 232, 0.06);
+
+  --text-primary:    #18080E;
+  --text-secondary:  #5C2D40;
+  --text-muted:      #9D6070;
+  --text-inverse:    #FFFFFF;
+
+  --border:          rgba(244, 63, 117, 0.12);
+  --border-strong:   rgba(244, 63, 117, 0.25);
+  --border-glass:    rgba(255,255,255,0.6);
+  --divider:         rgba(244, 63, 117, 0.08);
+
+  --shadow-sm:   0 2px 8px rgba(244,63,117,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md:   0 8px 30px rgba(244,63,117,0.12), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg:   0 20px 60px rgba(244,63,117,0.18), 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-xl:   0 32px 80px rgba(244,63,117,0.22), 0 16px 40px rgba(0,0,0,0.1);
+  --shadow-glow: 0 0 40px rgba(244,63,117,0.3), 0 0 80px rgba(139,111,232,0.2);
+
+  --gradient-primary:  linear-gradient(135deg, #F43F75 0%, #8B6FE8 60%, #6C3DE0 100%);
+  --gradient-warm:     linear-gradient(135deg, #FFB085 0%, #F43F75 100%);
+  --gradient-cool:     linear-gradient(135deg, #93C5FD 0%, #B8A4FF 100%);
+  --gradient-sunset:   linear-gradient(135deg, #F59E0B 0%, #F43F75 50%, #8B6FE8 100%);
+  --gradient-rose:     linear-gradient(135deg, #F43F75 0%, #FF85A8 100%);
+  --gradient-bg:       linear-gradient(160deg, #FEF6F9 0%, #F8F4FF 45%, #F0F8FF 100%);
+  --gradient-mesh:     radial-gradient(ellipse at 20% 50%, rgba(244,63,117,0.12) 0%, transparent 60%),
+                       radial-gradient(ellipse at 80% 20%, rgba(139,111,232,0.1) 0%, transparent 60%),
+                       radial-gradient(ellipse at 60% 80%, rgba(93,197,253,0.08) 0%, transparent 50%);
+
+  /* === TYPOGRAPHY === */
+  --font-display:  'Cormorant Garamond', 'Georgia', serif;
+  --font-body:     'Cabinet Grotesk', 'system-ui', sans-serif;
+  --font-accent:   'Instrument Serif', serif;
+  --font-mono:     'JetBrains Mono', monospace;
+
+  /* === SPACING === */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;
+  --space-4: 16px;  --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px;  --space-10: 40px; --space-12: 48px;
+  --space-16: 64px; --space-20: 80px;
+
+  /* === RADII === */
+  --radius-sm:   10px;
+  --radius-md:   18px;
+  --radius-lg:   28px;
+  --radius-xl:   36px;
+  --radius-full: 9999px;
+
+  /* === TRANSITIONS === */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* === LAYOUT === */
+  --sidebar-width:     268px;
+  --sidebar-collapsed: 74px;
+  --navbar-height:     68px;
+}
+
+/* === DARK THEME === */
+[data-theme="dark"] {
+  --bg-primary:      #0A0510;
+  --bg-secondary:    #110818;
+  --bg-tertiary:     #1A0E24;
+  --bg-card:         rgba(26,14,36,0.9);
+  --bg-glass:        rgba(26,14,36,0.75);
+  --bg-glass-hover:  rgba(36,20,52,0.95);
+  --bg-overlay:      rgba(244, 63, 117, 0.07);
+  --bg-overlay-2:    rgba(139, 111, 232, 0.07);
+
+  --text-primary:    #FDF0F5;
+  --text-secondary:  #D4A0B8;
+  --text-muted:      #8A607A;
+  --text-inverse:    #0A0510;
+
+  --border:          rgba(244, 63, 117, 0.1);
+  --border-strong:   rgba(244, 63, 117, 0.22);
+  --border-glass:    rgba(255,255,255,0.07);
+  --divider:         rgba(244, 63, 117, 0.07);
+
+  --shadow-sm:   0 2px 8px rgba(0,0,0,0.5);
+  --shadow-md:   0 8px 30px rgba(0,0,0,0.6);
+  --shadow-lg:   0 20px 60px rgba(0,0,0,0.7);
+  --shadow-xl:   0 32px 80px rgba(0,0,0,0.8);
+  --shadow-glow: 0 0 40px rgba(244,63,117,0.25), 0 0 80px rgba(139,111,232,0.15);
+
+  --gradient-bg: linear-gradient(160deg, #0A0510 0%, #0E0618 45%, #080C1A 100%);
+  --gradient-mesh: radial-gradient(ellipse at 20% 50%, rgba(244,63,117,0.08) 0%, transparent 60%),
+                   radial-gradient(ellipse at 80% 20%, rgba(139,111,232,0.07) 0%, transparent 60%),
+                   radial-gradient(ellipse at 60% 80%, rgba(93,197,253,0.05) 0%, transparent 50%);
+}

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSync — Love Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display.swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/variables.css"><link rel="stylesheet" href="/css/main.css">
+<style>
+.note-card { border-radius: 20px; padding: 22px; border: 1px solid var(--border-light); background: var(--bg-card); box-shadow: var(--shadow-sm); transition: all 0.25s var(--ease-spring); }
+.note-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.note-card.locked { background: linear-gradient(135deg, rgba(201,177,255,0.12), rgba(255,107,157,0.08)); border-color: rgba(201,177,255,0.3); }
+.note-card.unread { border-color: var(--brand-rose); }
+.note-card .note-header { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px; }
+.note-card .note-title { font-family:var(--font-display);font-size:1.1rem;font-weight:700; }
+.note-card .note-from { font-size:0.75rem;color:var(--text-muted); }
+.note-card .note-content { font-size:0.9rem;line-height:1.6;color:var(--text-secondary); white-space:pre-wrap; }
+.note-card .note-footer { display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-light); }
+.theme-selector { display:flex;gap:8px; }
+.theme-btn { width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s; }
+.theme-btn:hover,.theme-btn.selected { transform:scale(1.15);border-color:var(--text-primary); }
+.notes-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div id="topbar-slot"></div>
+    <main class="page">
+      <div class="page-header">
+        <div><h1 class="page-title">💌 Love Notes</h1><p class="page-subtitle">Heartfelt messages, timed to perfection</p></div>
+        <button class="btn btn-primary" onclick="Modal.open('write-note-modal')">✍️ Write Note</button>
+      </div>
+
+      <!-- Notes Grid -->
+      <div class="notes-grid stagger-children" id="notes-grid">
+        <div class="skeleton" style="height:200px;border-radius:20px"></div>
+        <div class="skeleton" style="height:200px;border-radius:20px"></div>
+        <div class="skeleton" style="height:200px;border-radius:20px"></div>
+      </div>
+      <div id="notes-empty" style="display:none;text-align:center;padding:60px 20px">
+        <div style="font-size:3rem;margin-bottom:12px">💌</div>
+        <div style="font-weight:600;margin-bottom:8px">No love notes yet</div>
+        <p class="text-muted text-sm" style="margin-bottom:16px">Send your partner a heartfelt message!</p>
+        <button class="btn btn-primary" onclick="Modal.open('write-note-modal')">Write First Note 💕</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Write Note Modal -->
+<div class="modal-overlay" id="write-note-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">💌 Write a Love Note</h3>
+      <button onclick="Modal.close('write-note-modal')" style="font-size:1.3rem;opacity:0.5">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-control" id="note-title" placeholder="Give this note a name..."></div>
+      <div class="form-group"><label class="form-label">Your Message *</label><textarea class="form-control" id="note-content" rows="6" placeholder="Pour your heart out... 💕"></textarea></div>
+      <div class="form-group">
+        <label class="form-label">Theme</label>
+        <div class="theme-selector">
+          <div class="theme-btn selected" data-theme="default" style="background:linear-gradient(135deg,#FF6B9D,#C84B8F)" onclick="selectTheme(this)" title="Rose"></div>
+          <div class="theme-btn" data-theme="ocean" style="background:linear-gradient(135deg,#A8D8EA,#4A90D9)" onclick="selectTheme(this)" title="Ocean"></div>
+          <div class="theme-btn" data-theme="sunset" style="background:linear-gradient(135deg,#FFD6A5,#FF6B9D)" onclick="selectTheme(this)" title="Sunset"></div>
+          <div class="theme-btn" data-theme="forest" style="background:linear-gradient(135deg,#A8EDDA,#2D8870)" onclick="selectTheme(this)" title="Forest"></div>
+          <div class="theme-btn" data-theme="midnight" style="background:linear-gradient(135deg,#2D1B2E,#9B59B6)" onclick="selectTheme(this)" title="Midnight"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;padding:14px;background:var(--bg-card);border-radius:14px;border:1px solid var(--border-light)">
+        <div style="font-weight:600;font-size:0.88rem">⏰ Delivery Options</div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+          <input type="checkbox" id="note-scheduled" style="accent-color:var(--brand-rose);width:18px;height:18px" onchange="toggleSchedule()">
+          <span>Schedule for later delivery</span>
+        </label>
+        <div id="schedule-opts" style="display:none">
+          <label class="form-label">Deliver at</label>
+          <input type="datetime-local" class="form-control" id="note-deliver-at">
+        </div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+          <input type="checkbox" id="note-locked" style="accent-color:var(--brand-rose);width:18px;height:18px" onchange="toggleLock()">
+          <span>🔒 Lock until a specific time</span>
+        </label>
+        <div id="lock-opts" style="display:none">
+          <label class="form-label">Unlock at</label>
+          <input type="datetime-local" class="form-control" id="note-unlock-at">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('write-note-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="sendNote()">Send Note 💌</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="/js/api.js"></script><script src="/js/ui.js"></script>
+<script>
+let selectedTheme = "default", notes = [], notesPage = 0;
+
+const THEME_BG = {
+  default: "linear-gradient(135deg,rgba(255,107,157,0.10),rgba(200,75,143,0.06))",
+  ocean:   "linear-gradient(135deg,rgba(168,216,234,0.15),rgba(74,144,217,0.08))",
+  sunset:  "linear-gradient(135deg,rgba(255,214,165,0.15),rgba(255,107,157,0.08))",
+  forest:  "linear-gradient(135deg,rgba(168,237,218,0.15),rgba(45,136,112,0.08))",
+  midnight:"linear-gradient(135deg,rgba(45,27,46,0.20),rgba(155,89,182,0.10))"
+};
+
+async function initNotes() {
+  if (!requireAuth()) return;
+  document.getElementById("sidebar-slot").innerHTML = Layout.buildSidebar("notes");
+  document.getElementById("topbar-slot").innerHTML = Layout.buildTopbar("💌 Love Notes");
+  await Layout.init("notes", "Love Notes");
+  await loadNotes();
+
+  document.addEventListener("ws:love-note", e => {
+    notes.unshift(e.detail);
+    renderNotes();
+    Toast.info("New love note arrived! 💌");
+  });
+}
+
+async function loadNotes() {
+  try {
+    const data = await API.notes.list(notesPage);
+    notes = data?.content || data || [];
+    renderNotes();
+  } catch(e) { Toast.error(e.message); }
+}
+
+function renderNotes() {
+  const grid = document.getElementById("notes-grid");
+  const empty = document.getElementById("notes-empty");
+  if (!notes.length) { grid.style.display="none"; empty.style.display="block"; return; }
+  empty.style.display="none"; grid.style.display="grid";
+  grid.innerHTML = notes.map(n => {
+    const isLocked = n.isLocked && n.unlockAt && new Date(n.unlockAt)>new Date();
+    const themeStyle = `background:${THEME_BG[n.theme]||THEME_BG.default}`;
+    return `<div class="note-card ${isLocked?"locked":""} ${!n.isRead?"unread":""}" style="${themeStyle}">
+      <div class="note-header">
+        <div>
+          ${n.title?`<div class="note-title">${n.title}</div>`:""}
+          <div class="note-from">From ${n.senderDisplayName} · ${DateUtil.formatRelative(n.createdAt)}</div>
+        </div>
+        <div style="font-size:1.2rem">${isLocked?"🔒":"💌"}</div>
+      </div>
+      <div class="note-content">${isLocked
+        ? `<span style="color:var(--text-muted);font-style:italic">This note unlocks ${DateUtil.formatRelative(n.unlockAt)}</span>`
+        : (n.content||"").slice(0,200) + (n.content?.length>200?"...":"")
+      }</div>
+      <div class="note-footer">
+        <div style="font-size:0.72rem;color:var(--text-muted)">
+          ${n.isLocked?`🔒 Unlocks ${new Date(n.unlockAt).toLocaleDateString()}`:n.isRead?"✅ Read":"📬 Unread"}
+        </div>
+        ${!n.isRead&&!isLocked?`<button class="btn btn-ghost btn-sm" onclick="markRead(${n.id})">Mark Read</button>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function selectTheme(el) {
+  document.querySelectorAll(".theme-btn").forEach(b=>b.classList.remove("selected"));
+  el.classList.add("selected"); selectedTheme = el.dataset.theme;
+}
+
+function toggleSchedule() { document.getElementById("schedule-opts").style.display = document.getElementById("note-scheduled").checked?"block":"none"; }
+function toggleLock() { document.getElementById("lock-opts").style.display = document.getElementById("note-locked").checked?"block":"none"; }
+
+async function sendNote() {
+  const content = document.getElementById("note-content").value.trim();
+  if (!content) { Toast.warn("Please write something!"); return; }
+  const isScheduled = document.getElementById("note-scheduled").checked;
+  const deliverAt = document.getElementById("note-deliver-at").value;
+  if (isScheduled && !deliverAt) { Toast.warn("Set a delivery time"); return; }
+  const isLocked = document.getElementById("note-locked").checked;
+  const unlockAt = document.getElementById("note-unlock-at").value;
+  if (isLocked && !unlockAt) { Toast.warn("Set an unlock time"); return; }
+  try {
+    await API.notes.create({
+      title: document.getElementById("note-title").value.trim()||null,
+      content, theme: selectedTheme,
+      isScheduled, deliverAt: isScheduled?deliverAt:null,
+      isLocked, unlockAt: isLocked?unlockAt:null
+    });
+    Toast.success(isScheduled?"Note scheduled! ⏰":"Note sent! 💌");
+    Modal.close("write-note-modal");
+    document.getElementById("note-content").value="";
+    document.getElementById("note-title").value="";
+    await loadNotes();
+  } catch(e) { Toast.error(e.message); }
+}
+
+async function markRead(id) {
+  try { await API.notes.read(id); await loadNotes(); }
+  catch(e) { Toast.error(e.message); }
+}
+
+document.addEventListener("DOMContentLoaded", initNotes);
+</script>
+</body>
+</html>
