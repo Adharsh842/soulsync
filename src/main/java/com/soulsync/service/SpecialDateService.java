@@ -90,7 +90,7 @@ public class SpecialDateService {
         List<Couple> couples = coupleRepository.findAll();
         for (Couple couple : couples) {
             List<SpecialDate> upcoming = specialDateRepository.findEventsWithinDays(
-                couple.getId(), LocalDate.now(), 7);
+                couple.getId(), LocalDate.now(), LocalDate.now().plusDays(7)); // FIXED: was int 7, now LocalDate
             for (SpecialDate event : upcoming) {
                 long days = ChronoUnit.DAYS.between(LocalDate.now(), event.getEventDate());
                 String msg = days == 0 ? "Today is " + event.getTitle() + "!" :
