@@ -1,0 +1,102 @@
+/* ================================================================
+   SoulSync Design System - CSS Variables
+   Glassmorphism + Warm Pastel Palette
+   ================================================================ */
+
+:root {
+  /* === COLOR PALETTE === */
+  --rose:         #FF6B9D;
+  --rose-light:   #FFB3D1;
+  --rose-dark:    #E84D85;
+  --peach:        #FFCBA4;
+  --lavender:     #C9B8FF;
+  --lavender-mid: #A78BFA;
+  --sky:          #BAE6FD;
+  --mint:         #A7F3D0;
+  --gold:         #FCD34D;
+
+  /* === LIGHT THEME === */
+  --bg-primary:      #FFF5F8;
+  --bg-secondary:    #FFFFFF;
+  --bg-tertiary:     #FFF0F5;
+  --bg-card:         rgba(255,255,255,0.75);
+  --bg-glass:        rgba(255,255,255,0.6);
+  --bg-glass-hover:  rgba(255,255,255,0.85);
+  --bg-overlay:      rgba(255, 107, 157, 0.08);
+
+  --text-primary:    #1A0A12;
+  --text-secondary:  #6B3D52;
+  --text-muted:      #A07080;
+  --text-inverse:    #FFFFFF;
+
+  --border:          rgba(255, 107, 157, 0.15);
+  --border-strong:   rgba(255, 107, 157, 0.3);
+  --divider:         rgba(255, 107, 157, 0.1);
+
+  --shadow-sm:  0 2px 8px rgba(255,107,157,0.1);
+  --shadow-md:  0 8px 24px rgba(255,107,157,0.15);
+  --shadow-lg:  0 20px 60px rgba(255,107,157,0.2);
+  --shadow-xl:  0 30px 80px rgba(255,107,157,0.25);
+
+  --gradient-primary:  linear-gradient(135deg, #FF6B9D 0%, #C084FC 50%, #818CF8 100%);
+  --gradient-warm:     linear-gradient(135deg, #FFCBA4 0%, #FF6B9D 100%);
+  --gradient-cool:     linear-gradient(135deg, #BAE6FD 0%, #C9B8FF 100%);
+  --gradient-sunset:   linear-gradient(135deg, #FCD34D 0%, #FF6B9D 50%, #C084FC 100%);
+  --gradient-bg:       linear-gradient(160deg, #FFF5F8 0%, #F5F0FF 50%, #F0F8FF 100%);
+
+  /* === TYPOGRAPHY === */
+  --font-display:  'Playfair Display', 'Georgia', serif;
+  --font-body:     'DM Sans', 'system-ui', sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+
+  /* === SPACING === */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;
+  --space-4: 16px;  --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px;  --space-10: 40px; --space-12: 48px;
+  --space-16: 64px; --space-20: 80px;
+
+  /* === RADII === */
+  --radius-sm:   8px;
+  --radius-md:   16px;
+  --radius-lg:   24px;
+  --radius-xl:   32px;
+  --radius-full: 9999px;
+
+  /* === TRANSITIONS === */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* === SIDEBAR === */
+  --sidebar-width:         260px;
+  --sidebar-collapsed:     72px;
+  --navbar-height:         64px;
+}
+
+/* === DARK THEME === */
+[data-theme="dark"] {
+  --bg-primary:      #0D0812;
+  --bg-secondary:    #160F1E;
+  --bg-tertiary:     #1E1528;
+  --bg-card:         rgba(30,21,40,0.85);
+  --bg-glass:        rgba(30,21,40,0.7);
+  --bg-glass-hover:  rgba(40,28,55,0.9);
+  --bg-overlay:      rgba(255, 107, 157, 0.06);
+
+  --text-primary:    #FDF2F8;
+  --text-secondary:  #D8A4BF;
+  --text-muted:      #8C6070;
+  --text-inverse:    #0D0812;
+
+  --border:          rgba(255, 107, 157, 0.12);
+  --border-strong:   rgba(255, 107, 157, 0.25);
+  --divider:         rgba(255, 107, 157, 0.08);
+
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.4);
+  --shadow-md:  0 8px 24px rgba(0,0,0,0.5);
+  --shadow-lg:  0 20px 60px rgba(0,0,0,0.6);
+  --shadow-xl:  0 30px 80px rgba(0,0,0,0.7);
+
+  --gradient-bg: linear-gradient(160deg, #0D0812 0%, #110820 50%, #080D1A 100%);
+}

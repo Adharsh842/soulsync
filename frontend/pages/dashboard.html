@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSync — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/variables.css">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div id="topbar-slot"></div>
+    <main class="page" id="main-page">
+      <!-- Dashboard Content -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="greeting-title">Good morning 💕</h1>
+          <p class="page-subtitle" id="greeting-sub">Here's what's happening with you two today</p>
+        </div>
+        <button class="btn btn-primary" onclick="window.location='/pages/chat.html'">
+          💬 Open Chat
+        </button>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="grid grid-4 stagger-children" id="stats-row" style="margin-bottom:28px">
+        <div class="stat-card" style="--accent:#FF6B9D">
+          <div class="stat-icon" style="background:rgba(255,107,157,0.12)">💬</div>
+          <div class="stat-value" id="stat-messages">—</div>
+          <div class="stat-label">Messages Sent</div>
+        </div>
+        <div class="stat-card" style="--accent:#C9B1FF">
+          <div class="stat-icon" style="background:rgba(201,177,255,0.15)">📸</div>
+          <div class="stat-value" id="stat-memories">—</div>
+          <div class="stat-label">Memories Saved</div>
+        </div>
+        <div class="stat-card" style="--accent:#A8EDDA">
+          <div class="stat-icon" style="background:rgba(168,237,218,0.20)">💫</div>
+          <div class="stat-value" id="stat-mood">—</div>
+          <div class="stat-label">Avg Mood Score</div>
+        </div>
+        <div class="stat-card" style="--accent:#FFD6A5">
+          <div class="stat-icon" style="background:rgba(255,214,165,0.20)">🗓️</div>
+          <div class="stat-value" id="stat-days">—</div>
+          <div class="stat-label">Days Together</div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:24px" id="dashboard-grid">
+
+        <!-- Left Column -->
+        <div style="display:flex;flex-direction:column;gap:24px">
+          <!-- On This Day -->
+          <div class="card animate-fade-in-up" style="animation-delay:100ms">
+            <div class="card-header flex items-center justify-between">
+              <span class="card-title">📅 On This Day</span>
+              <a href="/pages/timeline.html" class="btn btn-ghost btn-sm">View All →</a>
+            </div>
+            <div class="card-body" id="on-this-day-container">
+              <div class="skeleton" style="height:120px;border-radius:16px"></div>
+            </div>
+          </div>
+
+          <!-- Recent Memories -->
+          <div class="card animate-fade-in-up" style="animation-delay:200ms">
+            <div class="card-header flex items-center justify-between">
+              <span class="card-title">📸 Recent Memories</span>
+              <a href="/pages/timeline.html" class="btn btn-ghost btn-sm">View All →</a>
+            </div>
+            <div class="card-body">
+              <div id="recent-memories" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                ${("".join(['<div class="skeleton" style="aspect-ratio:1;border-radius:16px"></div>']*6))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Mood Chart -->
+          <div class="card animate-fade-in-up" style="animation-delay:300ms">
+            <div class="card-header flex items-center justify-between">
+              <span class="card-title">💫 Mood This Week</span>
+              <a href="/pages/moods.html" class="btn btn-ghost btn-sm">Track Mood →</a>
+            </div>
+            <div class="card-body">
+              <div id="mini-mood-chart" style="height:120px;display:flex;align-items:flex-end;gap:8px;padding-top:8px">
+                <div class="skeleton" style="height:100%;flex:1;border-radius:8px"></div>
+              </div>
+              <div id="today-log-prompt" style="display:none;margin-top:16px;padding:14px;background:rgba(255,107,157,0.06);border:1px dashed rgba(255,107,157,0.25);border-radius:14px;text-align:center">
+                <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:10px">How are you feeling today? 🌸</p>
+                <button class="btn btn-primary btn-sm" onclick="openMoodModal()">Log Mood</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display:flex;flex-direction:column;gap:24px">
+          <!-- Couple Card -->
+          <div class="card animate-fade-in-up" style="animation-delay:150ms;background:var(--grad-primary);border:none;color:white">
+            <div class="card-body" style="text-align:center;padding:28px 20px">
+              <div style="font-size:2.5rem;margin-bottom:12px;animation:heartbeat 1.5s ease infinite">💗</div>
+              <div id="couple-name" style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;margin-bottom:4px">Loading...</div>
+              <div id="couple-since" style="font-size:0.82rem;opacity:0.85;margin-bottom:18px">Together since...</div>
+              <div style="background:rgba(255,255,255,0.18);border-radius:12px;padding:12px">
+                <div style="font-size:0.75rem;opacity:0.8;margin-bottom:4px">COUPLE CODE</div>
+                <div id="couple-code" style="font-size:1rem;font-weight:700;letter-spacing:0.12em">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming Dates -->
+          <div class="card animate-fade-in-up" style="animation-delay:250ms">
+            <div class="card-header flex items-center justify-between">
+              <span class="card-title">🗓️ Upcoming</span>
+              <a href="/pages/dates.html" class="btn btn-ghost btn-sm">All Dates →</a>
+            </div>
+            <div class="card-body" id="upcoming-dates-list" style="display:flex;flex-direction:column;gap:10px">
+              <div class="skeleton" style="height:64px;border-radius:12px"></div>
+              <div class="skeleton" style="height:64px;border-radius:12px"></div>
+            </div>
+          </div>
+
+          <!-- Love Note Preview -->
+          <div class="card animate-fade-in-up" style="animation-delay:350ms">
+            <div class="card-header flex items-center justify-between">
+              <span class="card-title">💌 Love Notes</span>
+              <a href="/pages/notes.html" class="btn btn-ghost btn-sm">View →</a>
+            </div>
+            <div class="card-body">
+              <div id="love-note-preview">
+                <div class="skeleton" style="height:80px;border-radius:12px"></div>
+              </div>
+              <button class="btn btn-secondary w-full" style="margin-top:12px" onclick="window.location='/pages/notes.html'">
+                ✍️ Write a Note
+              </button>
+            </div>
+          </div>
+
+          <!-- Partner Mood -->
+          <div class="card animate-fade-in-up" style="animation-delay:400ms">
+            <div class="card-header">
+              <span class="card-title">🌡️ Partner's Mood Today</span>
+            </div>
+            <div class="card-body" id="partner-mood-card" style="text-align:center;padding:20px">
+              <div class="skeleton" style="height:60px;border-radius:12px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Mood Log Modal -->
+<div class="modal-overlay" id="mood-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">💫 Log Today's Mood</h3>
+      <button onclick="Modal.close('mood-modal')" style="font-size:1.3rem;opacity:0.5">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px" id="mood-picker">
+        <button class="mood-btn" data-score="1" data-label="SAD" onclick="selectMood(this)">
+          <div style="font-size:2rem">😢</div>
+          <div style="font-size:0.7rem;margin-top:4px">Sad</div>
+        </button>
+        <button class="mood-btn" data-score="2" data-label="ANXIOUS" onclick="selectMood(this)">
+          <div style="font-size:2rem">😰</div>
+          <div style="font-size:0.7rem;margin-top:4px">Anxious</div>
+        </button>
+        <button class="mood-btn" data-score="3" data-label="NEUTRAL" onclick="selectMood(this)">
+          <div style="font-size:2rem">😐</div>
+          <div style="font-size:0.7rem;margin-top:4px">Neutral</div>
+        </button>
+        <button class="mood-btn" data-score="4" data-label="HAPPY" onclick="selectMood(this)">
+          <div style="font-size:2rem">😊</div>
+          <div style="font-size:0.7rem;margin-top:4px">Happy</div>
+        </button>
+        <button class="mood-btn" data-score="5" data-label="ECSTATIC" onclick="selectMood(this)">
+          <div style="font-size:2rem">🥰</div>
+          <div style="font-size:0.7rem;margin-top:4px">Ecstatic</div>
+        </button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note (optional)</label>
+        <textarea class="form-control" id="mood-note" placeholder="What's on your mind?" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('mood-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMood()">Save Mood 💕</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+let selectedMood = null;
+
+async function initDashboard() {
+  if (!requireAuth()) return;
+
+  // Inject layout
+  const user = AppState.get();
+  document.getElementById("sidebar-slot").innerHTML = Layout.buildSidebar("dashboard");
+  document.getElementById("topbar-slot").innerHTML = Layout.buildTopbar("Dashboard");
+  await Layout.init("dashboard", "Dashboard");
+
+  // Greeting
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  document.getElementById("greeting-title").textContent = `${greet}, ${user?.displayName?.split(" ")[0] || ""}! 💕`;
+
+  // Load all dashboard data in parallel
+  try {
+    const [moodData, datesData, memoriesData, notesData] = await Promise.allSettled([
+      API.moods.analytics(30),
+      API.dates.upcoming(),
+      API.memories.timeline(0),
+      API.notes.list(0),
+    ]);
+
+    // Mood analytics
+    if (moodData.status === "fulfilled") {
+      const analytics = moodData.value;
+      document.getElementById("stat-mood").textContent = analytics.averageMoodScore?.toFixed(1) || "—";
+      renderMiniMoodChart(analytics.timeline || []);
+      checkTodayMood(analytics.timeline);
+    }
+
+    // Upcoming dates & days together
+    if (datesData.status === "fulfilled") {
+      renderUpcomingDates(datesData.value?.content || datesData.value || []);
+    }
+
+    // Memories
+    if (memoriesData.status === "fulfilled") {
+      const memList = memoriesData.value?.content || memoriesData.value || [];
+      document.getElementById("stat-memories").textContent = memoriesData.value?.totalElements || memList.length;
+      renderRecentMemories(memList.slice(0, 6));
+    }
+
+    // Love notes
+    if (notesData.status === "fulfilled") {
+      const noteList = notesData.value?.content || notesData.value || [];
+      renderLoveNotePreview(noteList[0]);
+    }
+
+    // On This Day
+    try {
+      const otd = await API.memories.onThisDay();
+      renderOnThisDay(otd);
+    } catch {}
+
+    // Couple info from user
+    if (user?.coupleId) {
+      document.getElementById("couple-code").textContent = user.coupleId ? "SOUL" + user.coupleId.toString().padStart(6,"0") : "—";
+      document.getElementById("couple-name").textContent = user.displayName + " & Partner";
+      document.getElementById("couple-since").textContent = "Together since " + new Date(user.createdAt || Date.now()).getFullYear();
+    } else {
+      document.getElementById("couple-name").textContent = "Link Your Partner 💌";
+      document.getElementById("couple-since").textContent = "No partner connected yet";
+    }
+
+  } catch(e) { console.error(e); }
+
+  // Placeholder stats
+  document.getElementById("stat-messages").textContent = "✨";
+  document.getElementById("stat-days").textContent = getDaysTogether(user?.createdAt);
+}
+
+function getDaysTogether(since) {
+  if (!since) return "—";
+  return Math.max(0, Math.floor((Date.now() - new Date(since)) / 86400000));
+}
+
+function renderMiniMoodChart(timeline) {
+  const container = document.getElementById("mini-mood-chart");
+  const last7 = timeline.slice(-7);
+  if (!last7.length) { container.innerHTML = "<p style=\"color:var(--text-muted);font-size:0.85rem;text-align:center;width:100%\">No mood data yet</p>"; return; }
+  const colors = ["#ef4444","#f97316","#facc15","#4ade80","#FF6B9D"];
+  const days = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+  container.innerHTML = last7.map(m => {
+    const score = m.moodScore || 3;
+    const h = (score / 5) * 100;
+    const c = colors[score-1] || colors[2];
+    const d = new Date(m.loggedDate);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:100%;background:${c}22;border-radius:8px;position:relative;height:96px">
+        <div style="position:absolute;bottom:0;left:0;right:0;background:${c};border-radius:8px;height:${h}%;transition:height 0.6s var(--ease-spring)"></div>
+      </div>
+      <span style="font-size:0.65rem;color:var(--text-muted)">${days[d.getDay()]}</span>
+    </div>`;
+  }).join("");
+}
+
+function checkTodayMood(timeline) {
+  const today = new Date().toISOString().split("T")[0];
+  const hasToday = timeline.some(m => m.loggedDate === today);
+  if (!hasToday) document.getElementById("today-log-prompt").style.display = "block";
+}
+
+function renderUpcomingDates(dates) {
+  const el = document.getElementById("upcoming-dates-list");
+  if (!dates.length) { el.innerHTML = `<p class="text-muted text-sm text-center" style="padding:12px">No upcoming dates. <a href="/pages/dates.html" style="color:var(--brand-rose)">Add one!</a></p>`; return; }
+  el.innerHTML = dates.slice(0, 4).map(d => {
+    const du = d.daysUntil;
+    const label = du === 0 ? "Today! 🎉" : du === 1 ? "Tomorrow" : `In ${du} days`;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg-card);border:1px solid var(--border-light);border-radius:12px;cursor:pointer" onclick="window.location='/pages/dates.html'">
+      <div style="width:36px;height:36px;background:${d.colorHex || "#FF6B9D"}22;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">
+        ${d.icon === "heart" ? "💗" : "🗓️"}
+      </div>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-weight:600;font-size:0.88rem;truncate">${d.title}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">${new Date(d.eventDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
+      </div>
+      <div style="font-size:0.75rem;font-weight:600;color:${du <= 3 ? "#FF6B9D" : "var(--text-muted)"};white-space:nowrap">${label}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderRecentMemories(memories) {
+  const el = document.getElementById("recent-memories");
+  if (!memories.length) {
+    el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px">
+      <div style="font-size:2rem;margin-bottom:8px">📸</div>
+      <p class="text-muted text-sm">No memories yet. <a href="/pages/timeline.html" style="color:var(--brand-rose)">Create your first one!</a></p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = memories.map(m => `
+    <div style="aspect-ratio:1;border-radius:14px;overflow:hidden;background:rgba(255,107,157,0.08);cursor:pointer;position:relative"
+         onclick="window.location='/pages/timeline.html'">
+      ${m.mediaType === "PHOTO"
+        ? `<img src="${m.mediaUrl}" alt="${m.title}" style="width:100%;height:100%;object-fit:cover">`
+        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.8rem">${m.mediaType==="VIDEO"?"🎬":"🎵"}</div>`}
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:8px;background:linear-gradient(transparent,rgba(0,0,0,0.5))">
+        <div style="font-size:0.65rem;color:white;font-weight:500;truncate">${m.title}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderOnThisDay(memories) {
+  const el = document.getElementById("on-this-day-container");
+  if (!memories.length) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">
+      <div style="font-size:2rem;margin-bottom:8px">🌸</div>
+      <p class="text-sm">No memories on this day yet. Make some today!</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = memories.map(m => `
+    <div style="display:flex;gap:14px;align-items:center;padding:12px;background:rgba(255,107,157,0.05);border-radius:14px;margin-bottom:10px">
+      <div style="width:60px;height:60px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--border-light)">
+        ${m.mediaType === "PHOTO" ? `<img src="${m.mediaUrl}" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem">📸</div>`}
+      </div>
+      <div>
+        <div style="font-weight:600;margin-bottom:3px">${m.title}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">${new Date(m.memoryDate).getFullYear()} · ${m.caption?.slice(0,60) || ""}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderLoveNotePreview(note) {
+  const el = document.getElementById("love-note-preview");
+  if (!note) { el.innerHTML = `<p class="text-muted text-sm text-center" style="padding:8px">No love notes yet 💌</p>`; return; }
+  el.innerHTML = `<div style="padding:14px;background:rgba(255,107,157,0.06);border-radius:12px;border:1px solid rgba(255,107,157,0.15)">
+    <div style="font-weight:600;font-size:0.88rem;margin-bottom:6px">${note.title || "Love Note"} 💌</div>
+    <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.5">${note.isLocked ? "🔒 This note is locked..." : note.content?.slice(0,80) + (note.content?.length > 80 ? "..." : "")}</div>
+    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:8px">From ${note.senderDisplayName} · ${DateUtil.formatRelative(note.createdAt)}</div>
+  </div>`;
+}
+
+function selectMood(btn) {
+  document.querySelectorAll(".mood-btn").forEach(b => b.style.background = "");
+  btn.style.background = "rgba(255,107,157,0.15)";
+  btn.style.border = "2px solid var(--brand-rose)";
+  btn.style.borderRadius = "14px";
+  selectedMood = { score: parseInt(btn.dataset.score), label: btn.dataset.label };
+}
+
+function openMoodModal() { Modal.open("mood-modal"); }
+
+async function saveMood() {
+  if (!selectedMood) { Toast.warn("Please select a mood first!"); return; }
+  try {
+    await API.moods.log({ moodScore: selectedMood.score, moodLabel: selectedMood.label, note: document.getElementById("mood-note").value });
+    Toast.success("Mood logged! 💫");
+    Modal.close("mood-modal");
+    document.getElementById("today-log-prompt").style.display = "none";
+  } catch(e) { Toast.error(e.message); }
+}
+
+// Mood button style
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".mood-btn").forEach(btn => {
+    Object.assign(btn.style, { padding:"12px 8px", borderRadius:"14px", border:"2px solid var(--border-light)", background:"var(--bg-card)", cursor:"pointer", transition:"all 0.2s", width:"100%", display:"flex", flexDirection:"column", alignItems:"center" });
+    btn.addEventListener("mouseenter", () => btn.style.borderColor = "var(--brand-rose)");
+    btn.addEventListener("mouseleave", () => { if (!selectedMood || selectedMood.score !== parseInt(btn.dataset.score)) btn.style.borderColor = "var(--border-light)"; });
+  });
+  initDashboard();
+});
+</script>
+</body>
+</html>

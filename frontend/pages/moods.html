@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSync — Mood Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/variables.css">
+<link rel="stylesheet" href="/css/main.css">
+<style>
+.mood-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 28px; }
+.mood-option {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 20px 12px; border-radius: 20px;
+  border: 2px solid var(--border-light); background: var(--bg-card);
+  cursor: pointer; transition: all 0.2s var(--ease-spring);
+}
+.mood-option:hover { transform: translateY(-3px); border-color: var(--brand-rose); background: rgba(255,107,157,0.06); }
+.mood-option.selected { border-color: var(--brand-rose); background: rgba(255,107,157,0.10); box-shadow: 0 4px 16px rgba(255,107,157,0.20); transform: translateY(-4px) scale(1.03); }
+.mood-emoji { font-size: 2.4rem; transition: transform 0.2s var(--ease-spring); }
+.mood-option:hover .mood-emoji, .mood-option.selected .mood-emoji { transform: scale(1.2); }
+.mood-label-text { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+.chart-bar-wrap { display: flex; align-items: flex-end; gap: 6px; height: 200px; padding: 0 8px; }
+.chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+.chart-bar-track { flex: 1; width: 100%; background: var(--border-light); border-radius: 8px; position: relative; overflow: hidden; }
+.chart-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 8px; transition: height 0.8s var(--ease-spring); }
+.chart-day-label { font-size: 0.65rem; color: var(--text-muted); }
+.mood-history-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px; border-radius: 14px;
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  transition: all 0.2s;
+}
+.mood-history-item:hover { border-color: var(--border-medium); transform: translateX(3px); }
+.mood-score-ring {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; flex-shrink: 0;
+}
+.donut-chart { display: flex; gap: 8px; flex-wrap: wrap; }
+.donut-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; }
+.donut-dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-slot"></div>
+  <div class="main-content">
+    <div id="topbar-slot"></div>
+    <main class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">💫 Mood Tracker</h1>
+          <p class="page-subtitle">Understand each other's emotional journey</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <select class="form-control" id="period-select" onchange="loadMoodData()" style="width:auto;min-width:120px">
+            <option value="7">7 Days</option>
+            <option value="30" selected>30 Days</option>
+            <option value="90">90 Days</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Log Today's Mood -->
+      <div class="card animate-fade-in-up" style="margin-bottom:24px">
+        <div class="card-header">
+          <span class="card-title">🌸 How are you feeling today?</span>
+        </div>
+        <div class="card-body">
+          <div class="mood-grid">
+            <div class="mood-option" data-score="1" data-label="SAD" onclick="selectMood(this)">
+              <div class="mood-emoji">😢</div>
+              <div class="mood-label-text">Sad</div>
+            </div>
+            <div class="mood-option" data-score="2" data-label="ANXIOUS" onclick="selectMood(this)">
+              <div class="mood-emoji">😰</div>
+              <div class="mood-label-text">Anxious</div>
+            </div>
+            <div class="mood-option" data-score="3" data-label="NEUTRAL" onclick="selectMood(this)">
+              <div class="mood-emoji">😐</div>
+              <div class="mood-label-text">Neutral</div>
+            </div>
+            <div class="mood-option" data-score="4" data-label="HAPPY" onclick="selectMood(this)">
+              <div class="mood-emoji">😊</div>
+              <div class="mood-label-text">Happy</div>
+            </div>
+            <div class="mood-option" data-score="5" data-label="ECSTATIC" onclick="selectMood(this)">
+              <div class="mood-emoji">🥰</div>
+              <div class="mood-label-text">Ecstatic</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Note (optional)</label>
+            <textarea class="form-control" id="mood-note" placeholder="What's on your mind today?..." rows="2"></textarea>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <label class="form-label" style="margin:0">Energy Level:</label>
+            <input type="range" id="energy-level" min="1" max="10" value="5" style="flex:1;accent-color:var(--brand-rose)">
+            <span id="energy-display" style="font-weight:700;min-width:20px;color:var(--brand-rose)">5</span>
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="saveMood()">
+            Save Today's Mood 💕
+          </button>
+          <div id="saved-today" style="display:none;margin-top:12px;padding:10px;background:rgba(34,197,94,0.10);border-radius:10px;font-size:0.85rem;color:#16a34a">
+            ✅ Mood logged for today!
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Grid -->
+      <div class="grid grid-3 stagger-children" id="analytics-cards" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(255,107,157,0.12);font-size:1.4rem">📊</div>
+          <div class="stat-value" id="avg-score">—</div>
+          <div class="stat-label">Average Mood Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(168,237,218,0.20);font-size:1.4rem">🔥</div>
+          <div class="stat-value" id="streak-count">—</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(201,177,255,0.15);font-size:1.4rem">📈</div>
+          <div class="stat-value" id="total-entries">—</div>
+          <div class="stat-label">Total Entries</div>
+        </div>
+      </div>
+
+      <!-- Chart + Distribution -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:24px">
+        <div class="card animate-fade-in-up">
+          <div class="card-header">
+            <span class="card-title">📈 Mood Timeline</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-bar-wrap" id="mood-chart">
+              <div style="color:var(--text-muted);font-size:0.85rem;width:100%;text-align:center;align-self:center">Loading chart...</div>
+            </div>
+          </div>
+        </div>
+        <div class="card animate-fade-in-up">
+          <div class="card-header">
+            <span class="card-title">🌈 Distribution</span>
+          </div>
+          <div class="card-body">
+            <div id="distribution-chart" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mood History -->
+      <div class="card animate-fade-in-up">
+        <div class="card-header flex items-center justify-between">
+          <span class="card-title">📋 History</span>
+          <span id="history-count" class="badge badge-rose"></span>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px" id="mood-history">
+          <div class="skeleton" style="height:64px;border-radius:12px"></div>
+          <div class="skeleton" style="height:64px;border-radius:12px"></div>
+          <div class="skeleton" style="height:64px;border-radius:12px"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+let selectedMoodData = null;
+const MOOD_COLORS = { ECSTATIC:"#FF6B9D", HAPPY:"#4ade80", CONTENT:"#60a5fa", NEUTRAL:"#facc15", ANXIOUS:"#f97316", SAD:"#818cf8", ANGRY:"#ef4444", LONELY:"#a78bfa" };
+const MOOD_EMOJIS = { ECSTATIC:"🥰", HAPPY:"😊", CONTENT:"😌", NEUTRAL:"😐", ANXIOUS:"😰", SAD:"😢", ANGRY:"😠", LONELY:"😔" };
+const SCORE_COLORS = ["#ef4444","#f97316","#facc15","#4ade80","#FF6B9D"];
+
+async function initMoods() {
+  if (!requireAuth()) return;
+  document.getElementById("sidebar-slot").innerHTML = Layout.buildSidebar("moods");
+  document.getElementById("topbar-slot").innerHTML = Layout.buildTopbar("💫 Mood Tracker");
+  await Layout.init("moods", "Mood Tracker");
+  document.getElementById("energy-level").addEventListener("input", e => {
+    document.getElementById("energy-display").textContent = e.target.value;
+  });
+  await loadMoodData();
+  await checkTodayMood();
+}
+
+async function loadMoodData() {
+  const days = parseInt(document.getElementById("period-select").value);
+  try {
+    const analytics = await API.moods.analytics(days);
+    document.getElementById("avg-score").textContent = analytics.averageMoodScore?.toFixed(1) || "—";
+    document.getElementById("total-entries").textContent = analytics.totalEntries || 0;
+
+    const timeline = analytics.timeline || [];
+    document.getElementById("history-count").textContent = timeline.length + " entries";
+    renderStreak(timeline);
+    renderChart(timeline);
+    renderDistribution(analytics.moodDistribution || {});
+    renderHistory(timeline);
+  } catch(e) { Toast.error("Could not load mood data: " + e.message); }
+}
+
+async function checkTodayMood() {
+  try {
+    const moods = await API.moods.list(1);
+    const today = new Date().toISOString().split("T")[0];
+    const todayEntry = (moods || []).find(m => m.loggedDate === today);
+    if (todayEntry) {
+      document.getElementById("saved-today").style.display = "block";
+      const opt = document.querySelector(`.mood-option[data-score="${todayEntry.moodScore}"]`);
+      if (opt) selectMood(opt);
+    }
+  } catch {}
+}
+
+function selectMood(el) {
+  document.querySelectorAll(".mood-option").forEach(o => o.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedMoodData = { score: parseInt(el.dataset.score), label: el.dataset.label };
+}
+
+async function saveMood() {
+  if (!selectedMoodData) { Toast.warn("Please select a mood first!"); return; }
+  try {
+    await API.moods.log({
+      moodScore: selectedMoodData.score,
+      moodLabel: selectedMoodData.label,
+      note: document.getElementById("mood-note").value,
+      energyLevel: parseInt(document.getElementById("energy-level").value)
+    });
+    Toast.success("Mood saved! 💫");
+    document.getElementById("saved-today").style.display = "block";
+    await loadMoodData();
+  } catch(e) { Toast.error(e.message); }
+}
+
+function renderStreak(timeline) {
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const sorted = [...timeline].sort((a,b) => new Date(b.loggedDate) - new Date(a.loggedDate));
+  for (let i = 0; i < sorted.length; i++) {
+    const d = new Date(sorted[i].loggedDate); d.setHours(0,0,0,0);
+    const diff = Math.round((today - d) / 86400000);
+    if (diff === i) streak++;
+    else break;
+  }
+  document.getElementById("streak-count").textContent = streak + " 🔥";
+}
+
+function renderChart(timeline) {
+  const el = document.getElementById("mood-chart");
+  if (!timeline.length) { el.innerHTML = `<p class="text-muted text-sm" style="text-align:center;width:100%;align-self:center">No data in this period</p>`; return; }
+  const days = parseInt(document.getElementById("period-select").value);
+  const slice = timeline.slice(-Math.min(days, 14));
+  const dayNames = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+  el.innerHTML = slice.map(m => {
+    const score = m.moodScore || 3;
+    const h = (score / 5) * 100;
+    const c = SCORE_COLORS[score-1];
+    const d = new Date(m.loggedDate);
+    return `<div class="chart-bar-col">
+      <div style="font-size:0.7rem;color:var(--text-secondary);font-weight:500">${score}</div>
+      <div class="chart-bar-track">
+        <div class="chart-bar-fill" style="height:${h}%;background:linear-gradient(to top, ${c}88, ${c})"></div>
+      </div>
+      <div class="chart-day-label">${dayNames[d.getDay()]}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderDistribution(dist) {
+  const el = document.getElementById("distribution-chart");
+  const total = Object.values(dist).reduce((a,b) => a + Number(b), 0);
+  if (!total) { el.innerHTML = `<p class="text-muted text-sm text-center">No data yet</p>`; return; }
+  el.innerHTML = Object.entries(dist).map(([label, count]) => {
+    const pct = Math.round((Number(count)/total)*100);
+    const color = MOOD_COLORS[label] || "#FF6B9D";
+    return `<div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:0.8rem;font-weight:500">${MOOD_EMOJIS[label]||""} ${label}</span>
+        <span style="font-size:0.78rem;color:var(--text-muted)">${pct}%</span>
+      </div>
+      <div style="height:8px;background:var(--border-light);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width 0.8s var(--ease-spring)"></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderHistory(timeline) {
+  const el = document.getElementById("mood-history");
+  if (!timeline.length) { el.innerHTML = `<p class="text-muted text-sm text-center" style="padding:20px">No mood entries yet. Start logging today!</p>`; return; }
+  const sorted = [...timeline].sort((a,b) => new Date(b.loggedDate)-new Date(a.loggedDate));
+  el.innerHTML = sorted.slice(0,20).map(m => {
+    const color = SCORE_COLORS[(m.moodScore||3)-1];
+    return `<div class="mood-history-item">
+      <div class="mood-score-ring" style="background:${color}20">
+        <span>${MOOD_EMOJIS[m.moodLabel]||"😐"}</span>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <span style="font-weight:600;font-size:0.9rem">${m.moodLabel} · Score ${m.moodScore}/5</span>
+          <span style="font-size:0.75rem;color:var(--text-muted)">${new Date(m.loggedDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
+        </div>
+        ${m.note ? `<div style="font-size:0.82rem;color:var(--text-secondary)">${m.note.slice(0,80)}</div>` : ""}
+        ${m.energyLevel ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">Energy: ${m.energyLevel}/10</div>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+document.addEventListener("DOMContentLoaded", initMoods);
+</script>
+</body>
+</html>
