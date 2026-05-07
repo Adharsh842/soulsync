@@ -1156,7 +1156,14 @@ async function generateInviteCode() {
     document.getElementById('invite-code-display').style.display = 'block';
   } catch(e) { Toast.error('Failed to generate code', e.message); }
 }
-
+function formatTime(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleTimeString('en-IN', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    timeZone: 'Asia/Kolkata'
+  });
+}
 async function joinWithCode() {
   const code = document.getElementById('join-code')?.value?.trim();
   if (!code) { Toast.error('Enter a code'); return; }
